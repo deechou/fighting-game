@@ -93,6 +93,8 @@ class Fighter extends Sprite {
     this.framesHold = 10;
     this.framesElapsed = 0;
     this.sprites = sprites;
+    this.jumps = 2;
+    this.combo = 2;
 
     for (const sprite in this.sprites) {
       sprites[sprite].image = new Image();
@@ -106,15 +108,6 @@ class Fighter extends Sprite {
     this.attackBox.position.x = this.position.x + this.attackBox.offset.x;
     this.attackBox.position.y = this.position.y + this.attackBox.offset.y;
 
-    //Draw Attack Box
-    // c.fillStyle = "black";
-    // c.fillRect(
-    //   this.attackBox.position.x,
-    //   this.attackBox.position.y,
-    //   this.attackBox.width,
-    //   this.attackBox.height
-    // );
-
     this.position.x += this.velocity.x;
     this.position.y += this.velocity.y;
 
@@ -122,6 +115,7 @@ class Fighter extends Sprite {
       this.position.y + this.height + this.velocity.y >=
       canvas.height - floor
     ) {
+      this.jumps = 2;
       this.velocity.y = 0;
       this.position.y = 330;
     } else {
