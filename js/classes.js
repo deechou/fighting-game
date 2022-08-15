@@ -52,7 +52,9 @@ class Fighter extends Sprite {
   constructor({
     position,
     velocity,
-    color = "red",
+    properties = { attackDmg, attackCD, color },
+    attackDmg,
+    attackCD,
     imageSrc,
     scale = 1,
     framesMax = 1,
@@ -86,15 +88,18 @@ class Fighter extends Sprite {
       width: attackBox.width,
       height: attackBox.height,
     };
-    this.color = color;
     this.dead = false;
     this.isAttacking = false;
+    this.justAttacked = false;
+    this.startedCombo = false;
+    this.currAttackCD = properties.attackCD;
+    this.jumps = 2;
+    this.combo = 2;
+    this.properties = properties;
     this.framesCurrent = 0;
     this.framesHold = 10;
     this.framesElapsed = 0;
     this.sprites = sprites;
-    this.jumps = 2;
-    this.combo = 2;
 
     for (const sprite in this.sprites) {
       sprites[sprite].image = new Image();
@@ -124,14 +129,36 @@ class Fighter extends Sprite {
   }
 
   attack() {
-    // console.log(this.attackBox);
+    if (!this.justAttacked) {
+      this.justAttacked = true;
+      setTimeout(() => {
+        this.justAttacked = false;
+      }, this.properties.attackCD);
+      if (this.image !== this.sprites.attack1.image) {
+        this.attack1();
+      } else {
+        this.attack2();
+      }
+    } else if (
+      this.image === this.sprites.attack1.image &&
+      this.framesCurrent > 4
+    ) {
+      this.attack2();
+    }
+  }
 
+  attack1() {
     this.isAttacking = true;
     this.switchSprite("attack1");
   }
 
-  takeHit() {
-    this.health -= 20;
+  attack2() {
+    this.isAttacking = true;
+    this.switchSprite("attack2");
+  }
+
+  takeHit(damage) {
+    this.health -= damage;
     if (this.health <= 0) {
       this.switchSprite("death");
     } else this.switchSprite("takeHit");
@@ -145,11 +172,19 @@ class Fighter extends Sprite {
     }
     //Check if currently attacking. Currently attacking overrides all other sprite changes.
     if (
+      this.image === this.sprites.attack2.image &&
+      this.framesCurrent < this.sprites.attack2.framesMax - 1
+    ) {
+      return;
+    }
+
+    if (
       this.image === this.sprites.attack1.image &&
       this.framesCurrent < this.sprites.attack1.framesMax - 1
     ) {
       return;
     }
+
     //Take hit animation also overrides
     if (
       this.image === this.sprites.takeHit.image &&
@@ -191,6 +226,13 @@ class Fighter extends Sprite {
         if (this.image !== this.sprites.attack1.image) {
           this.image = this.sprites.attack1.image;
           this.framesMax = this.sprites.attack1.framesMax;
+          this.framesCurrent = 0;
+        }
+        break;
+      case "attack2":
+        if (this.image !== this.sprites.attack2.image) {
+          this.image = this.sprites.attack2.image;
+          this.framesMax = this.sprites.attack2.framesMax;
           this.framesCurrent = 0;
         }
         break;
